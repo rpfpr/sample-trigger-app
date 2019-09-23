@@ -19,7 +19,7 @@ def m2x_trigger():
     req_json = request.get_json()
     print(f'{req_json}')
     logging.info(f'~~ {req_json} ~~')
-    custom_data = req_json["custom_data"]
+    custom_data = json.loads(req_json["custom_data"])
     if req_json["event"] == "fired":
         message = f'Conditions met for M2X Trigger named {req_json["trigger"]}. " VALUES: [ '
     else:
