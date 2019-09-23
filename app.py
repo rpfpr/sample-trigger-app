@@ -21,9 +21,9 @@ def m2x_trigger():
     logging.info(f'~~ {req_json} ~~')
     custom_data = json.loads(req_json["custom_data"])
     if req_json["event"] == "fired":
-        message = f'Conditions met for M2X Trigger named {req_json["trigger"]}. " VALUES: [ '
+        message = f'M2X Trigger {req_json["trigger"]}: keg is running low on coffee. Uh oh! VALUES: [ '
     else:
-        message = f'M2X Trigger named {req_json["trigger"]} has been reset. " VALUES: [ '
+        message = f'M2X Trigger {req_json["trigger"]}: keg has been filled up. Yay! VALUES: [ '
     count = 1
     num_values = len(req_json["values"])
     for stream in req_json["values"]:
@@ -32,7 +32,8 @@ def m2x_trigger():
         count += 1
     msg = EmailMessage()
     msg.set_content(message)
-    msg['Subject'] = f'M2X Trigger named {req_json["trigger"]}'
+    status = "running low" if req_json["event"] == "fired" else "re-filled"
+    msg['Subject'] = f'M2X Trigger named {req_json["trigger"]}: {status}'
     msg['From'] = "coldbrew.keg.lifesaver@gmail.com"
     msg['To'] = custom_data["recipient"]
     s = smtplib.SMTP('smtp.gmail.com', 587)
