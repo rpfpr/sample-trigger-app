@@ -19,22 +19,20 @@ def m2x_trigger():
     req_json = request.get_json()
     print(f'{req_json}')
     logging.info(f'~~ {req_json} ~~')
-    body = req_json["body"]
-    custom_data = req_json["body"]["custom_data"]
-    if body["event"] == "fired":
-        message = f'Conditions met for M2X Trigger named {body["trigger"]}. " VALUES: [ '
+    custom_data = req_json["custom_data"]
+    if req_json["event"] == "fired":
+        message = f'Conditions met for M2X Trigger named {req_json["trigger"]}. " VALUES: [ '
     else:
-        message = f'M2X Trigger named {body["trigger"]} has been reset. " VALUES: [ '
-
+        message = f'M2X Trigger named {req_json["trigger"]} has been reset. " VALUES: [ '
     count = 1
-    num_values = len(body["values"])
-    for stream in body["values"]:
-        message += stream + ": " + str(body["values"][stream]["value"])
+    num_values = len(req_json["values"])
+    for stream in req_json["values"]:
+        message += stream + ": " + str(req_json["values"][stream]["value"])
         message += " ]" if num_values == count else ", "
         count += 1
     msg = EmailMessage()
     msg.set_content(message)
-    msg['Subject'] = f'M2X Trigger named {body["trigger"]}'
+    msg['Subject'] = f'M2X Trigger named {req_json["trigger"]}'
     msg['From'] = "coldbrew.keg.lifesaver@gmail.com"
     msg['To'] = custom_data["recipient"]
     s = smtplib.SMTP('smtp.gmail.com', 587)
@@ -44,7 +42,6 @@ def m2x_trigger():
     s.send_message(msg)
     s.close()
     return jsonify(result="Success"), 200
-
 if __name__ == '__main__':
     logging.info(f'>>>>> Starting flask server at http://{host}:{port}')
     app.run(host=host, port=port, debug=True)
