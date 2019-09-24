@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import requests
 import smtplib
 
 from email.message import EmailMessage
@@ -43,6 +44,31 @@ def m2x_trigger():
     s.send_message(msg)
     s.close()
     return jsonify(result="Success"), 200
+                                                                                             
+@app.route('/m2x-send-data', methods=['POST'])
+def send_data():
+    req_json = request.get_json()
+    value = req_json["value"]
+    device_id = req_json["device_id"]
+    m2x_key = req_json["m2x_key"]
+    try:
+        value_in_kg = round(float(value)/1000, 2)
+        url = f"http://api-m2x.att.com/v2/devices/{device_id}/streams/keg-weight/value"
+        headers = {"X-M2X-KEY": m2x_key}
+        json_data = {"value": value_in_kg}
+        print(f"Keg weight is: {value_in_kg} kg")
+        response = requests.put(url, headers=headers, json=json_data)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        return jsonify(response.json()), response.status_code
+    return jsonify(result="Success"), 200
+
+@app.route('/health')
+def health_check():
+    health = 'healthy'
+    status = 'up'
+    return jsonify(health=health, status=status), 200
+                                                                                         
 if __name__ == '__main__':
     logging.info(f'>>>>> Starting flask server at http://{host}:{port}')
     app.run(host=host, port=port, debug=True)
